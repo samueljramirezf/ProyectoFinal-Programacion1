@@ -1,0 +1,118 @@
+            Proyecto Final: Simulador de un "Monedero Virtual con sistema de Puntos"
+
+Objetivo: Desarrollar una aplicación que simule un monedero virtual avanzado, permitiendo realizar
+transacciones entre clientes como depósitos, retiros, transferencias, consultas, reportes, gastos,
+además de incorporar funcionalidades complejas como transacciones programadas, análisis de
+patrones de gasto, sistema de puntos por transacciones.
+
+Descripción:​
+El sistema debe permitir la gestión de cuentas virtuales de los clientes, donde cada cliente puede
+realizar diversas transacciones y consultar distintos tipos de información relacionada con sus cuentas
+y gastos. Además de las funcionalidades básicas, el sistema debe incluir un componente de
+gamificación con un sistema de puntos, incentivando a los clientes a usar el monedero virtual.
+
+Funcionalidades Básicas:
+
+    1.​ Depósitos: Los clientes pueden agregar dinero a su cuenta.
+    2.​ Retiros: Los clientes pueden retirar dinero de su cuenta, siempre que tengan saldo suficiente.
+    3.​ Transferencias: Los clientes pueden transferir dinero entre diferentes cuentas de otros
+        clientes.
+    4.​ Consultas de Saldo: Los clientes pueden consultar su saldo actual.
+    5.​ Consultas de Historial de Transacciones: Los clientes pueden ver todas las transacciones
+        realizadas.
+
+Funcionalidades Avanzadas:
+
+    1.​ Sistema de Puntos por Transacciones:
+            ○​ Cada transacción realizada por un cliente (depósito, retiro, transferencia) genera una
+                cantidad específica de puntos dependiendo del tipo y el monto de la transacción. Por
+                ejemplo:
+                    ■​ Depósitos: 1 punto por cada 100 unidades de moneda depositadas.
+                    ■​ Retiros: 2 puntos por cada 100 unidades retiradas.
+                    ■​ Transferencias: 3 puntos por cada 100 unidades transferidas.
+            ○​ Los puntos acumulados pueden ser canjeados por beneficios como descuentos en
+                transacciones futuras o privilegios adicionales en el sistema.
+    2.​ Rangos de Clientes:
+            ○​ Con base en los puntos acumulados, los clientes serán clasificados en diferentes
+                rangos (por ejemplo, Bronce, Plata, Oro, Platino). Cada rango puede tener beneficios
+                adicionales, como tarifas reducidas para transferencias o bonos de puntos
+                adicionales por ciertas transacciones.
+    3.​ Transacciones Programadas:
+            ○​ Los clientes pueden programar transacciones recurrentes (depósitos automáticos,
+                transferencias periódicas).
+            ○​ Usa algoritmos de ordenamiento para procesar estas transacciones de manera
+                ordenada y eficiente según la fecha de ejecución.
+    4.​ Análisis de Patrones de Gasto:
+           ○​ Genera informes avanzados sobre los patrones de gasto de los clientes.
+           ○​ Alertas y Notificaciones:
+           ○​ Envía notificaciones automáticas al cliente, como alertas de saldo bajo o
+               recordatorios de transacciones programadas(whatsapp, gmail, msm).
+   5.​ Multimonedero:
+           ○​ Los clientes pueden manejar múltiples monederos dentro de su cuenta (uno para
+               ahorros, otro para gastos diarios).
+   6.​ Interfaz de Usuario:
+           ○​ Proporciona una interfaz para realizar transacciones, consultar puntos acumulados,
+               ver rangos, y canjear beneficios y demás operaciones.
+
+   7.​ Algoritmo de detección de transacciones atípicas: El sistema deberá implementar un
+       algoritmo que analice el historial de transacciones de cada cliente con el propósito de
+       identificar movimientos que se alejen de su comportamiento habitual. Para realizar este
+       análisis, se deberá calcular el promedio de los montos de las transacciones históricas y su
+       desviación estándar. Una transacción podrá considerarse atípica cuando su monto sea
+       superior al valor obtenido mediante la expresión promedio + 2 × desviación estándar.
+       Cuando se detecte una operación que cumpla esta condición, el sistema deberá marcarla
+       como potencialmente sospechosa y generar una alerta para el cliente. La solución deberá
+       utilizar las estructuras de datos disponibles en el proyecto, integrar programación declarativa
+       cuando sea pertinente y presentar una justificación del algoritmo utilizado, incluyendo su
+       complejidad temporal.
+
+Requisitos del Sistema de Puntos:
+
+   1.​ Acumulación de Puntos:
+           ○​ Cada cliente tiene un registro de los puntos acumulados y un historial de
+                transacciones relacionadas con estos puntos.
+           ○​ Los puntos deben ser recalculados dinámicamente en caso de que se revierta alguna
+                transacción.
+   2.​ Canje de Puntos:
+           ○​ Los clientes pueden canjear puntos por beneficios específicos. Ejemplo:
+                    ■​ 100 puntos: Reducción del 10% en la comisión por transferencias.
+                    ■​ 500 puntos: Un mes sin cargos por retiros.
+                    ■​ 1000 puntos: Bono de saldo de 50 unidades en el monedero.
+   3.​ Clasificación de Rangos:
+           ○​ Implementar una función que calcule el rango de cada cliente con base en sus
+                puntos acumulados:
+                    ■​ Bronce: 0–500 puntos.
+                    ■​ Plata: 501–1000 puntos.
+                    ■​ Oro: 1001–5000 puntos.
+                    ■​ Platino: Más de 5000 puntos.
+
+Conceptos de Programación Orientada a Objetos Aplicados
+Para garantizar una arquitectura flexible y reutilizable, el sistema implementará los siguientes
+conceptos de Programación Orientada a Objetos (POO):
+
+    ●​ Herencia: Permitir la reutilización de código y extender funcionalidades de clases base.
+    ●​ Interfaces: Definir comportamientos comunes a distintas clases.
+    ●​ Polimorfismo: Implementar métodos que puedan ser sobrescritos para diferentes
+       necesidades.
+    ●​ Encapsulamiento: Proteger los datos mediante modificadores de acceso adecuados.
+    ●​ Abstracción: Crear clases abstractas para estructurar las entidades principales del sistema.
+    ●​ uso de interfaces gráficas de usuario.
+
+Además de las funcionalidades descritas, el proyecto deberá aplicar de manera obligatoria los
+conceptos y herramientas trabajados durante el curso. La solución deberá incluir el uso de
+programación declarativa mediante expresiones lambda y Stream API, aplicadas en operaciones
+como búsquedas, filtros, ordenamientos, agrupaciones, cálculos o generación de reportes;
+implementar un manejo adecuado de excepciones, incluyendo como mínimo 3 excepciones
+personalizadas asociadas a diferentes reglas de negocio del sistema; incorporar validaciones para
+garantizar la integridad de los datos ingresados y el correcto cumplimiento de las reglas definidas; y
+desarrollar una interfaz gráfica utilizando JavaFX, desde la cual sea posible acceder a las principales
+funcionalidades del monedero virtual. El uso de estos elementos deberá estar integrado de manera
+coherente con la lógica del proyecto y no incorporarse únicamente para cumplir el requisito.
+
+Informe Final:
+
+Entregar el informe final que incluya los pasos del pensamiento computacional(abstracción,
+descomposición, reconocimiento de patrones y codificación), pruebas y un análisis técnico detallado
+de cómo se implementaron los principios de la programación orientada a objetos en el código del
+proyecto(Abstracción, Encapsulamiento, Herencia, Polimorfismo).
+
