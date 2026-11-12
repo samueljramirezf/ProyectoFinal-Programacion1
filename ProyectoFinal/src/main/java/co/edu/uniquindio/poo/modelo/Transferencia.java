@@ -7,6 +7,7 @@ import co.edu.uniquindio.poo.util.Validaciones;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Envío de dinero de un monedero a otro. Agrega el monedero destino y la categoría.
@@ -64,6 +65,12 @@ public class Transferencia extends Transaccion {
 
     public Categoria getCategoria() {
         return categoria;
+    }
+
+    /** Polimorfismo: una transferencia siempre lleva categoría de gasto. */
+    @Override
+    public Optional<Categoria> getCategoriaGasto() {
+        return Optional.of(categoria);
     }
 
     @Override

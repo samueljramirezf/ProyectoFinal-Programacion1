@@ -9,7 +9,7 @@ import co.edu.uniquindio.poo.util.Validaciones;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Movimiento de dinero sobre un monedero.
@@ -34,7 +34,12 @@ public abstract class Transaccion {
 
     private static int contadorIds = 1;
 
-    private final String id;
+    /**
+     * Se asigna al completarse (no al crearse): así una operación que falla (por ejemplo, saldo
+     * insuficiente) o una simple cotización de comisión no consumen un id y los ids quedan seguidos.
+     * Mientras está PENDIENTE vale null.
+     */
+    private String id;
     private final BigDecimal monto;
     private final Monedero origen;
     private final LocalDateTime fecha;
@@ -52,7 +57,6 @@ public abstract class Transaccion {
         this.descripcion = descripcion == null ? "" : descripcion.trim();
         this.comision = Config.redondear(BigDecimal.ZERO);
         this.estado = EstadoTransaccion.PENDIENTE;
-        this.id = "T-" + String.format("%05d", contadorIds++);
     }
 
     // ---------------- Métodos abstractos (polimorfismo) ----------------
@@ -64,6 +68,14 @@ public abstract class Transaccion {
 
     /** Porcentaje de comisión antes de descuentos (por rango o beneficios). */
     public abstract BigDecimal getTasaComisionBase();
+
+    /**
+     * Categoría de gasto, si la transacción la tiene. Por defecto ninguna (un depósito no es gasto);
+     * Retiro y Transferencia lo sobrescriben. Así el historial se filtra por categoría sin instanceof.
+     */
+    public Optional<Categoria> getCategoriaGasto() {
+        return Optional.empty();
+    }
 
     // ---------------- Comportamiento común ----------------
 
@@ -112,6 +124,7 @@ public abstract class Transaccion {
             throw new IllegalStateException("La transacción " + id + " ya está " + estado);
         }
         estado = EstadoTransaccion.COMPLETADA;
+        id = "T-" + String.format("%05d", contadorIds++);
     }
 
     /** COMPLETADA -> REVERTIDA. Regla de negocio: solo una vez y solo si está completada. */
@@ -130,6 +143,7 @@ public abstract class Transaccion {
 
     // ---------------- Getters ----------------
 
+    /** null mientras la transacción está PENDIENTE. */
     public String getId() {
         return id;
     }
@@ -162,22 +176,14 @@ public abstract class Transaccion {
         return sospechosa;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Transaccion)) return false;
-        return id.equals(((Transaccion) o).id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    // equals/hashCode NO se sobrescriben: cada transacción es un objeto único (nunca se crean
+    // copias de la misma), así que basta la identidad. Además el id cambia de null a su valor al
+    // completarse, y un hashCode basado en un campo que cambia rompería HashMap/HashSet.
 
     /** Las subclases lo amplían con super.toString() + sus datos propios. */
     @Override
     public String toString() {
-        return id + " " + getTipo() + " " + monto.toPlainString()
+        return (id != null ? id : "(pendiente)") + " " + getTipo() + " " + monto.toPlainString()
                 + " (comisión " + comision.toPlainString() + ") " + estado
                 + (sospechosa ? " [SOSPECHOSA]" : "");
     }

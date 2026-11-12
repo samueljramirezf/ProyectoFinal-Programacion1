@@ -7,6 +7,7 @@ import co.edu.uniquindio.poo.util.Validaciones;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /** Salida de dinero de un monedero. Agrega la categoría de gasto (para el análisis de patrones). */
 public class Retiro extends Transaccion {
@@ -37,6 +38,12 @@ public class Retiro extends Transaccion {
 
     public Categoria getCategoria() {
         return categoria;
+    }
+
+    /** Polimorfismo: un retiro siempre es un gasto con categoría. */
+    @Override
+    public Optional<Categoria> getCategoriaGasto() {
+        return Optional.of(categoria);
     }
 
     @Override

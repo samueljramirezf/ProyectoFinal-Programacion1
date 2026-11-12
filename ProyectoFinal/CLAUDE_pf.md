@@ -152,3 +152,14 @@ Cliente y Administrador (heredan de `Usuario`, clase abstracta). Inicio de sesi�
 - Saldo bajo: saldo ≤ 500. Es solo un aviso (alerta), no bloquea movimientos.
 - Dinero: 2 decimales con `RoundingMode.HALF_EVEN`.
 - Fase 5: evaluar una interfaz `Categorizable` (Retiro, Transferencia) para el análisis de gasto.
+
+## Decisiones confirmadas (Fase 2)
+
+- `Reloj` es un objeto inyectado por constructor; arranca en `Config.FECHA_INICIO_RELOJ` (2026-11-01 08:00) y solo avanza.
+- El id de una transacción se asigna al completarse: las operaciones fallidas y las cotizaciones no consumen ids. `Transaccion` usa igualdad por identidad.
+- Bono de 1000 pts: se acredita directo al monedero (no es un `Deposito`, no se revierte ni da puntos); el rastro queda en el historial de puntos.
+- Canjear de nuevo "retiros sin comisión" mientras está vigente suma 30 días al vencimiento actual.
+- El beneficio de 10 % usado en una transferencia no se devuelve si esa transferencia se revierte.
+- Monedero o transacción inexistente → `DatoInvalidoException`. Cliente inexistente → `ClienteNoEncontradoException`.
+- Registrar un cliente no crea monederos; se crean con `crearMonedero`.
+- La reversión está en `MonederoServicio` (switch por tipo, temporal hasta la interfaz `Reversible` de la Fase 5A).

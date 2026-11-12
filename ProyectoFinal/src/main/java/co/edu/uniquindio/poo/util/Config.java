@@ -2,6 +2,7 @@ package co.edu.uniquindio.poo.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 
 /**
  * Constantes de negocio del monedero, todas en un solo lugar.
@@ -15,6 +16,10 @@ public final class Config {
 
     private Config() {
     }
+
+    // ---------- Reloj simulado ----------
+    /** Fecha fija de arranque del Reloj (supuesto): así cada ejecución da los mismos resultados. */
+    public static final LocalDateTime FECHA_INICIO_RELOJ = LocalDateTime.of(2026, 11, 1, 8, 0);
 
     // ---------- Dinero ----------
     /** Todo el dinero se maneja con 2 decimales. */

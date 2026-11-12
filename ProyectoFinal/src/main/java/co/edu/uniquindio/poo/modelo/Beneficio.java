@@ -17,7 +17,7 @@ public class Beneficio {
     private final String id;
     private final TipoBeneficio tipo;
     private final LocalDate fechaCanje;
-    private final LocalDate fechaVencimiento; // null = no vence por tiempo
+    private LocalDate fechaVencimiento; // null = no vence por tiempo; solo cambia con extenderVigencia()
     private boolean usado;
 
     public Beneficio(TipoBeneficio tipo, LocalDate fechaCanje) throws DatoInvalidoException {
@@ -44,6 +44,20 @@ public class Beneficio {
             throw new IllegalStateException("El beneficio " + id + " ya fue usado");
         }
         usado = true;
+    }
+
+    /**
+     * Regla: si el cliente vuelve a canjear un beneficio por tiempo mientras sigue vigente,
+     * los días se suman al vencimiento actual en lugar de crear un beneficio paralelo.
+     */
+    public void extenderVigencia(int dias) {
+        if (fechaVencimiento == null) {
+            throw new IllegalStateException("El beneficio " + tipo + " no vence por tiempo");
+        }
+        if (dias <= 0) {
+            throw new IllegalArgumentException("Los días a extender deben ser positivos: " + dias);
+        }
+        fechaVencimiento = fechaVencimiento.plusDays(dias);
     }
 
     public String getId() {
