@@ -77,6 +77,14 @@ public abstract class Transaccion {
         return Optional.empty();
     }
 
+    /**
+     * ¿Cuenta como gasto en el análisis de patrones? Por defecto, si tiene categoría de gasto.
+     * Transferencia lo sobrescribe: mover dinero entre monederos propios no es gastar.
+     */
+    public boolean esGasto() {
+        return getCategoriaGasto().isPresent();
+    }
+
     // ---------------- Comportamiento común ----------------
 
     /**

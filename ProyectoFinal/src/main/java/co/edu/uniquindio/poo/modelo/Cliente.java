@@ -12,7 +12,7 @@ import java.util.Optional;
 
 /**
  * Cliente del monedero. Hereda los datos personales de Usuario y agrega monederos, puntos,
- * beneficios y alertas.
+ * beneficios, alertas y transacciones programadas.
  *
  * Puntos con DOS contadores:
  *  - puntosDisponibles: los que se pueden gastar; bajan al canjear.
@@ -29,6 +29,7 @@ public class Cliente extends Usuario {
     private final List<MovimientoPuntos> movimientosPuntos = new ArrayList<>();
     private final List<Beneficio> beneficios = new ArrayList<>();
     private final List<Alerta> alertas = new ArrayList<>();
+    private final List<TransaccionProgramada> programadas = new ArrayList<>();
     private int puntosDisponibles;
     private int puntosAcumulados;
 
@@ -157,5 +158,16 @@ public class Cliente extends Usuario {
 
     public List<Alerta> getAlertas() {
         return Collections.unmodifiableList(alertas);
+    }
+
+    // ---------------- Transacciones programadas ----------------
+
+    /** El cliente es dueño de sus programadas; su ejecución ordenada la hace ProgramadasServicio. */
+    public void agregarProgramada(TransaccionProgramada programada) throws DatoInvalidoException {
+        programadas.add(Validaciones.noNulo(programada, "transacción programada"));
+    }
+
+    public List<TransaccionProgramada> getProgramadas() {
+        return Collections.unmodifiableList(programadas);
     }
 }

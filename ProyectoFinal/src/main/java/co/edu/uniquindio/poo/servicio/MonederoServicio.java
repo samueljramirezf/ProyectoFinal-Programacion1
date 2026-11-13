@@ -56,13 +56,18 @@ public class MonederoServicio {
     private final ClienteRepositorio clienteRepositorio;
     private final TransaccionRepositorio transaccionRepositorio;
     private final PuntosServicio puntosServicio;
+    private final AnalisisServicio analisisServicio;
+    private final AlertasServicio alertasServicio;
     private final Reloj reloj;
 
     public MonederoServicio(ClienteRepositorio clienteRepositorio, TransaccionRepositorio transaccionRepositorio,
-                            PuntosServicio puntosServicio, Reloj reloj) {
+                            PuntosServicio puntosServicio, AnalisisServicio analisisServicio,
+                            AlertasServicio alertasServicio, Reloj reloj) {
         this.clienteRepositorio = Objects.requireNonNull(clienteRepositorio);
         this.transaccionRepositorio = Objects.requireNonNull(transaccionRepositorio);
         this.puntosServicio = Objects.requireNonNull(puntosServicio);
+        this.analisisServicio = Objects.requireNonNull(analisisServicio);
+        this.alertasServicio = Objects.requireNonNull(alertasServicio);
         this.reloj = Objects.requireNonNull(reloj);
     }
 
@@ -119,6 +124,7 @@ public class MonederoServicio {
         retiro.aplicarComision(factorRetiro(origen.getPropietario()));
         origen.debitar(retiro.getMontoTotal()); // monto + comisión; falla sin modificar si no alcanza
         completarYRegistrar(retiro, origen);
+        alertasServicio.revisarSaldoBajo(origen, retiro.getMontoTotal());
         return retiro;
     }
 
@@ -139,6 +145,7 @@ public class MonederoServicio {
         origen.debitar(transferencia.getMontoTotal());
         destino.acreditar(transferencia.getMonto());
         completarYRegistrar(transferencia, origen, destino);
+        alertasServicio.revisarSaldoBajo(origen, transferencia.getMontoTotal());
 
         // Al final: si la operación hubiera fallado, el beneficio no se habría gastado.
         beneficio.ifPresent(Beneficio::marcarUsado);
@@ -271,7 +278,10 @@ public class MonederoServicio {
 
     // ================= Apoyo =================
 
-    /** Pasos finales comunes a toda operación exitosa. */
+    /**
+     * Pasos finales comunes a toda operación exitosa. Aquí se integra la detección de atípicas:
+     * como todas las operaciones pasan por este método, ninguna se queda sin evaluar.
+     */
     private void completarYRegistrar(Transaccion transaccion, Monedero... monederos) throws DatoInvalidoException {
         transaccion.marcarCompletada(); // aquí recibe su id
         for (Monedero monedero : monederos) {
@@ -279,6 +289,7 @@ public class MonederoServicio {
         }
         transaccionRepositorio.guardar(transaccion);
         puntosServicio.otorgarPuntos(transaccion);
+        analisisServicio.evaluarAtipica(transaccion);
     }
 
     /** Retiros: sin cargo si el cliente tiene vigente el beneficio de 500 puntos. El rango no rebaja retiros. */

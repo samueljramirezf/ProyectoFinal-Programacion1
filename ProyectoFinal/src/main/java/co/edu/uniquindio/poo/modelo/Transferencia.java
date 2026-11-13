@@ -73,6 +73,12 @@ public class Transferencia extends Transaccion {
         return Optional.of(categoria);
     }
 
+    /** Polimorfismo: entre monederos propios el dinero no sale del cliente, así que no es gasto. */
+    @Override
+    public boolean esGasto() {
+        return !esEntreMonederosPropios();
+    }
+
     @Override
     public String toString() {
         return super.toString() + " -> " + destino.getId() + " categoría " + categoria;

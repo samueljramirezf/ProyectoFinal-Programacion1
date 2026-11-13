@@ -118,12 +118,15 @@ Cliente y Administrador (heredan de `Usuario`, clase abstracta). Inicio de sesi�
 |------|-----------|
 | 1 | Proyecto Maven + paquetes `modelo` y `excepcion` |
 | 2 | Servicios núcleo: depósito, retiro, transferencia, puntos, rangos, reversión |
-| 3 | `Main` de consola que ejercita todo (sirve de verificación) |
-| 4 | Avanzado: programadas, atípicas, análisis de gasto, alertas |
-| 5 | Interfaces de Java (`Notificador`, `Repositorio`, `Reversible`) y JavaFX |
-| 6 | (Después) pruebas con JUnit y notificaciones reales |
+| ~~3~~ | **Eliminada.** La Fase 4 trae un `Main` de consola mínimo para verificar |
+| 4 | Avanzado: programadas, atípicas, análisis de gasto, alertas (3 servicios) |
+| 5A | Interfaces de Java: `Puntuable`, `Reversible` (las del diagrama) y `Notificador`. Sin `Repositorio<T, ID>` ni notificador compuesto |
+| 5B | JavaFX, siguiendo la estructura del tercer parcial |
+| 6 | **Aplazada** hasta nuevo aviso (pruebas JUnit); las pruebas del informe se hacen manuales |
 
-**Por ahora (fases 1 a 3): sin JavaFX, sin interfaces de Java, sin JUnit y sin APIs externas.**
+Los prompts vigentes de las fases 4 y 5 están en `PROMPTS_FASES_4_Y_5.md`. Objetivo: código simple y explicable, sin clases que no se usen.
+
+**Commits: nunca sin preguntar antes al usuario.**
 
 ---
 
@@ -163,3 +166,14 @@ Cliente y Administrador (heredan de `Usuario`, clase abstracta). Inicio de sesi�
 - Monedero o transacción inexistente → `DatoInvalidoException`. Cliente inexistente → `ClienteNoEncontradoException`.
 - Registrar un cliente no crea monederos; se crean con `crearMonedero`.
 - La reversión está en `MonederoServicio` (switch por tipo, temporal hasta la interfaz `Reversible` de la Fase 5A).
+
+## Decisiones confirmadas (Fase 4)
+
+- Tres servicios nuevos: `AlertasServicio` (único lugar que crea alertas; ahí se conectará el `Notificador` en 5A), `AnalisisServicio` (gasto + atípicas) y `ProgramadasServicio`.
+- Dependencias por constructor, sin ciclos: Alertas → Análisis → Monedero → Programadas.
+- Atípicas: historial = transacciones que hizo el cliente (es el origen), anteriores a la nueva y sin las revertidas; cuentan depósitos, retiros y transferencias. Se evalúa en `MonederoServicio.completarYRegistrar`, por donde pasan todas las operaciones.
+- Gasto: retiros y transferencias a otros clientes, completados, por el monto sin comisión. Lo decide `Transaccion.esGasto()` (polimorfismo: `Transferencia` lo sobrescribe para excluir las de monederos propios).
+- Saldo bajo: la alerta sale solo cuando el saldo cruza el umbral (después de un retiro o transferencia), no en cada movimiento.
+- Programadas: solo depósito automático y transferencia periódica. Las guarda el `Cliente` (como en el diagrama). Se ejecutan con una `PriorityQueue` por fecha; si se avanzan varios días se ejecuta cada fecha vencida. Las transacciones generadas llevan la fecha actual del reloj (limitación conocida).
+- Programada que falla por saldo: alerta tipo `SALDO_BAJO` explicando el fallo; se reprograma igual (esa fecha se pierde) y se sigue con las demás.
+- Recordatorio de programadas próximas: **en espera** (el enunciado lo da como ejemplo; no es indispensable).
