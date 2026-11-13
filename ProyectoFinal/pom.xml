@@ -26,6 +26,13 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <!-- Pruebas: junit-jupiter trae la API y el motor que las ejecuta; versión fija para que el build sea repetible -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -37,6 +44,12 @@
                 <configuration>
                     <release>17</release>
                 </configuration>
+            </plugin>
+            <plugin>
+                <!-- Ejecuta las pruebas con mvn test; la versión por defecto de Maven no reconoce JUnit 5 -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
             </plugin>
             <plugin>
                 <!-- Se ejecuta con: mvn javafx:run (sin module-info, por eso mainClass no lleva prefijo de módulo) -->
