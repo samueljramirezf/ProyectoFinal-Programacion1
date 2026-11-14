@@ -10,7 +10,6 @@ import co.edu.uniquindio.poo.modelo.Beneficio;
 import co.edu.uniquindio.poo.modelo.Categoria;
 import co.edu.uniquindio.poo.modelo.Cliente;
 import co.edu.uniquindio.poo.modelo.Deposito;
-import co.edu.uniquindio.poo.modelo.EstadoTransaccion;
 import co.edu.uniquindio.poo.modelo.Monedero;
 import co.edu.uniquindio.poo.modelo.Retiro;
 import co.edu.uniquindio.poo.modelo.TipoMonedero;
@@ -197,24 +196,13 @@ public class MonederoServicio {
         Transaccion transaccion = transaccionRepositorio.buscarPorId(idTransaccion)
                 .orElseThrow(() -> new DatoInvalidoException("transacción", "no existe la transacción " + idTransaccion));
 
-        if (transaccion.getEstado() != EstadoTransaccion.COMPLETADA) {
+        if (!transaccion.puedeRevertirse()) {
             throw new TransaccionNoReversibleException("La transacción " + idTransaccion
                     + " no se puede revertir porque está " + transaccion.getEstado());
         }
         puntosServicio.validarReversionPuntos(transaccion);
-
-        switch (transaccion.getTipo()) {
-            // El dinero depositado sale de nuevo; si ya se gastó: SaldoInsuficienteException.
-            case DEPOSITO -> transaccion.getOrigen().debitar(transaccion.getMonto());
-            // Se devuelve todo lo que salió: monto + comisión.
-            case RETIRO -> transaccion.getOrigen().acreditar(transaccion.getMontoTotal());
-            case TRANSFERENCIA -> {
-                Transferencia transferencia = (Transferencia) transaccion;
-                // Primero el débito al destinatario: si ya no tiene el dinero, falla sin tocar el origen.
-                transferencia.getDestino().debitar(transferencia.getMonto());
-                transferencia.getOrigen().acreditar(transferencia.getMontoTotal());
-            }
-        }
+        // Polimorfismo: cada tipo de transacción sabe devolver su propio dinero (Reversible).
+        transaccion.revertir();
 
         puntosServicio.revertirPuntos(transaccion);
         transaccion.marcarRevertida();

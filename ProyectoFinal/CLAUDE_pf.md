@@ -102,7 +102,7 @@ COMIDA, TRANSPORTE, SERVICIOS, ENTRETENIMIENTO, SALUD, EDUCACION, OTROS. Los ret
 
 ### Alertas y notificaciones
 - Tipos: SALDO_BAJO, RECORDATORIO, ATIPICA.
-- Los envíos (WhatsApp, correo, SMS) son **simulados**. No integrar APIs externas por ahora.
+- Envío: **solo correo real con Gmail** (`NotificadorGmail`, decisión de la Fase 5A). No hay notificadores simulados de WhatsApp ni SMS; se pueden agregar después como otra implementación de `Notificador`.
 
 ### Roles **(supuesto)**
 Cliente y Administrador (heredan de `Usuario`, clase abstracta). Inicio de sesión simple en memoria.
@@ -165,11 +165,11 @@ Los prompts vigentes de las fases 4 y 5 están en `PROMPTS_FASES_4_Y_5.md`. Obje
 - El beneficio de 10 % usado en una transferencia no se devuelve si esa transferencia se revierte.
 - Monedero o transacción inexistente → `DatoInvalidoException`. Cliente inexistente → `ClienteNoEncontradoException`.
 - Registrar un cliente no crea monederos; se crean con `crearMonedero`.
-- La reversión está en `MonederoServicio` (switch por tipo, temporal hasta la interfaz `Reversible` de la Fase 5A).
+- La reversión la coordina `MonederoServicio.revertir` (validar, revertir puntos, marcar estado); desde la Fase 5A el dinero lo devuelve cada transacción con `Reversible` (ya no hay switch por tipo).
 
 ## Decisiones confirmadas (Fase 4)
 
-- Tres servicios nuevos: `AlertasServicio` (único lugar que crea alertas; ahí se conectará el `Notificador` en 5A), `AnalisisServicio` (gasto + atípicas) y `ProgramadasServicio`.
+- Tres servicios nuevos: `AlertasServicio` (único lugar que crea alertas; ahí se conecta el `Notificador` desde la 5A), `AnalisisServicio` (gasto + atípicas) y `ProgramadasServicio`.
 - Dependencias por constructor, sin ciclos: Alertas → Análisis → Monedero → Programadas.
 - Atípicas: historial = transacciones que hizo el cliente (es el origen), anteriores a la nueva y sin las revertidas; cuentan depósitos, retiros y transferencias. Se evalúa en `MonederoServicio.completarYRegistrar`, por donde pasan todas las operaciones.
 - Gasto: retiros y transferencias a otros clientes, completados, por el monto sin comisión. Lo decide `Transaccion.esGasto()` (polimorfismo: `Transferencia` lo sobrescribe para excluir las de monederos propios).
@@ -177,3 +177,15 @@ Los prompts vigentes de las fases 4 y 5 están en `PROMPTS_FASES_4_Y_5.md`. Obje
 - Programadas: solo depósito automático y transferencia periódica. Las guarda el `Cliente` (como en el diagrama). Se ejecutan con una `PriorityQueue` por fecha; si se avanzan varios días se ejecuta cada fecha vencida. Las transacciones generadas llevan la fecha actual del reloj (limitación conocida).
 - Programada que falla por saldo: alerta tipo `SALDO_BAJO` explicando el fallo; se reprograma igual (esa fecha se pierde) y se sigue con las demás.
 - Recordatorio de programadas próximas: **en espera** (el enunciado lo da como ejemplo; no es indispensable).
+
+## Decisiones confirmadas (Fase 5A)
+
+- `modelo/Reversible` (`revertir()`, `puedeRevertirse()`): la implementa `Transaccion`. `puedeRevertirse()` vive en `Transaccion` (solo si está COMPLETADA) y cada hija implementa `revertir()`: `Deposito` debita el monto del monedero; `Retiro` acredita monto + comisión al origen; `Transferencia` primero debita el monto al destino (si ya no lo tiene, falla sin tocar el origen) y luego acredita monto + comisión al origen.
+- `MonederoServicio.revertir` ya no tiene switch: buscar → `puedeRevertirse()` → `validarReversionPuntos` → `transaccion.revertir()` → `revertirPuntos` → `marcarRevertida()`. El orden no cambió, así que los resultados son los mismos de la Fase 2.
+- `modelo/Puntuable` (`calcularPuntos()`): la implementa `Transaccion`. **Pendiente**: la está completando el compañero; por ahora la interfaz está vacía y `calcularPuntos()` sigue declarado como abstracto en `Transaccion`.
+- `notificacion/Notificador` (`enviar(Cliente, Alerta)`) con una sola implementación: `NotificadorGmail` (correo real por SMTP de Gmail con contraseña de aplicación). No se hicieron los simulados que pedía el prompt (decisión del equipo).
+- `AlertasServicio` recibe una `List<Notificador>` por constructor; `crear()` guarda la alerta en el cliente y la envía por cada notificador.
+- Credenciales en variables de entorno `MONEDERO_CORREO` y `MONEDERO_CLAVE_CORREO` (configuradas en IntelliJ, nunca en el código ni en el repositorio). Sin ellas el `Main` usa una lista vacía: las alertas se guardan pero no se envían, para que el proyecto corra sin credenciales.
+- Si un envío falla (sin internet, clave incorrecta), `NotificadorGmail` lo atrapa y lo informa por consola; la operación del monedero no se cancela.
+- Dependencia nueva en el `pom.xml`: `org.eclipse.angus:angus-mail:2.0.3` (incluye la API `jakarta.mail`).
+- El `Main` agrega la sección 9 al final: revierte un retiro y una transferencia y muestra que un segundo intento se rechaza. Las secciones 1 a 8 dan la misma salida que en la Fase 4.

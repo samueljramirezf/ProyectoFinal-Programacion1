@@ -30,7 +30,7 @@ import java.util.Optional;
  * cambia su monto). El estado solo cambia con marcarCompletada() / marcarRevertida(), que
  * validan las transiciones permitidas.
  */
-public abstract class Transaccion {
+public abstract class Transaccion implements Puntuable, Reversible {
 
     private static int contadorIds = 1;
 
@@ -134,10 +134,15 @@ public abstract class Transaccion {
         estado = EstadoTransaccion.COMPLETADA;
         id = "T-" + String.format("%05d", contadorIds++);
     }
+    @Override 
+    /** Solo se puede revertir una transacción completada (y una sola vez). */
+    public boolean puedeRevertirse(){
+        return estado == EstadoTransaccion.COMPLETADA;
+    }
 
     /** COMPLETADA -> REVERTIDA. Regla de negocio: solo una vez y solo si está completada. */
     public void marcarRevertida() throws TransaccionNoReversibleException {
-        if (estado != EstadoTransaccion.COMPLETADA) {
+        if (!(puedeRevertirse())) {
             throw new TransaccionNoReversibleException(
                     "La transacción " + id + " no se puede revertir porque está " + estado);
         }

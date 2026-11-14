@@ -1,7 +1,9 @@
 package co.edu.uniquindio.poo;
 
 import co.edu.uniquindio.poo.excepcion.MonederoException;
+import co.edu.uniquindio.poo.excepcion.TransaccionNoReversibleException;
 import co.edu.uniquindio.poo.modelo.Categoria;
+import co.edu.uniquindio.poo.modelo.Cliente;
 import co.edu.uniquindio.poo.modelo.Frecuencia;
 import co.edu.uniquindio.poo.modelo.Monedero;
 import co.edu.uniquindio.poo.modelo.TipoMonedero;
@@ -13,12 +15,16 @@ import co.edu.uniquindio.poo.servicio.AnalisisServicio;
 import co.edu.uniquindio.poo.servicio.MonederoServicio;
 import co.edu.uniquindio.poo.servicio.ProgramadasServicio;
 import co.edu.uniquindio.poo.servicio.PuntosServicio;
+import co.edu.uniquindio.poo.notificacion.Notificador;
+import co.edu.uniquindio.poo.notificacion.NotificadorGmail;
 import co.edu.uniquindio.poo.util.Reloj;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
- * Demo de consola de la Fase 4: programadas, atípicas, análisis de gasto y alertas.
+ * Demo de consola de las Fases 4 y 5A: programadas, atípicas, análisis de gasto, alertas
+ * (enviadas por Gmail si hay credenciales) y reversión polimórfica con Reversible.
  * Es solo para verificar los servicios; en la Fase 5B se reemplaza por la aplicación JavaFX.
  */
 public class Main {
@@ -28,7 +34,14 @@ public class Main {
         Reloj reloj = new Reloj();
         ClienteRepositorio clientes = new ClienteRepositorio();
         TransaccionRepositorio transacciones = new TransaccionRepositorio();
-        AlertasServicio alertas = new AlertasServicio(clientes, reloj);
+        // Las credenciales de Gmail se leen de variables de entorno: NUNCA se escriben en el código.
+        // Sin ellas (por ejemplo, al ejecutarlo el profesor) las alertas se guardan pero no se envían.
+        String correo = System.getenv("MONEDERO_CORREO");
+        String clave = System.getenv("MONEDERO_CLAVE_CORREO");
+        List<Notificador> notificadores = (correo != null && clave != null)
+                ? List.of(new NotificadorGmail(correo, clave))
+                : List.of();
+        AlertasServicio alertas = new AlertasServicio(clientes, reloj, notificadores);
         AnalisisServicio analisis = new AnalisisServicio(clientes, alertas);
         PuntosServicio puntos = new PuntosServicio(clientes, reloj);
         MonederoServicio monederos = new MonederoServicio(clientes, transacciones, puntos, analisis, alertas, reloj);
@@ -54,8 +67,9 @@ public class Main {
         titulo("3. Gastos y alerta de saldo bajo");
         monederos.depositar(luisGastos.getId(), new BigDecimal("1000"), "Sueldo");
         monederos.retirar(anaAhorros.getId(), new BigDecimal("150"), Categoria.COMIDA, "Mercado");
-        monederos.transferir(anaAhorros.getId(), luisGastos.getId(), new BigDecimal("200"), Categoria.TRANSPORTE, "Pago viaje");
-        monederos.retirar(anaAhorros.getId(), new BigDecimal("80"), Categoria.COMIDA, "Almuerzo");
+        Transaccion pagoViaje = monederos.transferir(anaAhorros.getId(), luisGastos.getId(), new BigDecimal("200"),
+                Categoria.TRANSPORTE, "Pago viaje");
+        Transaccion almuerzo = monederos.retirar(anaAhorros.getId(), new BigDecimal("80"), Categoria.COMIDA, "Almuerzo");
         monederos.transferir(anaAhorros.getId(), anaGastos.getId(), new BigDecimal("100"), Categoria.OTROS,
                 "A mi monedero de gastos (no cuenta como gasto)");
         System.out.println(anaAhorros + "\n" + anaGastos + "\n" + luisGastos);
@@ -91,6 +105,20 @@ public class Main {
         alertas.alertasDe("1001").forEach(a -> System.out.println("  " + a));
         System.out.println("Luis:");
         alertas.alertasDe("2002").forEach(a -> System.out.println("  " + a));
+
+        // Va al final para no cambiar los resultados de las secciones anteriores (iguales a la Fase 4).
+        titulo("9. Reversión (interfaz Reversible)");
+        Cliente ana = monederos.buscarCliente("1001");
+        System.out.println("Antes:   " + anaAhorros + " | " + luisGastos + " | puntos de Ana " + ana.getPuntosDisponibles());
+        // El servicio llama transaccion.revertir() sin saber el tipo: cada clase devuelve su propio dinero.
+        System.out.println("Revertida -> " + monederos.revertir(almuerzo.getId()));
+        System.out.println("Revertida -> " + monederos.revertir(pagoViaje.getId()));
+        System.out.println("Después: " + anaAhorros + " | " + luisGastos + " | puntos de Ana " + ana.getPuntosDisponibles());
+        try {
+            monederos.revertir(almuerzo.getId());
+        } catch (TransaccionNoReversibleException e) {
+            System.out.println("Segundo intento rechazado: " + e.getMessage());
+        }
     }
 
     private static void titulo(String texto) {

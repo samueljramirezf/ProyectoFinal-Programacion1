@@ -2,6 +2,7 @@ package co.edu.uniquindio.poo.modelo;
 
 import co.edu.uniquindio.poo.excepcion.DatoInvalidoException;
 import co.edu.uniquindio.poo.excepcion.MontoInvalidoException;
+import co.edu.uniquindio.poo.excepcion.SaldoInsuficienteException;
 import co.edu.uniquindio.poo.util.Config;
 import co.edu.uniquindio.poo.util.Validaciones;
 
@@ -44,6 +45,12 @@ public class Retiro extends Transaccion {
     @Override
     public Optional<Categoria> getCategoriaGasto() {
         return Optional.of(categoria);
+    }
+    
+    @Override 
+    public void revertir() throws MontoInvalidoException, SaldoInsuficienteException{
+        getOrigen().acreditar(getMontoTotal());
+        
     }
 
     @Override

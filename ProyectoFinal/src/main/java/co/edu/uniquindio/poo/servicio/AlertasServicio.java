@@ -11,6 +11,7 @@ import co.edu.uniquindio.poo.modelo.TransaccionProgramada;
 import co.edu.uniquindio.poo.repositorio.ClienteRepositorio;
 import co.edu.uniquindio.poo.util.Config;
 import co.edu.uniquindio.poo.util.Reloj;
+import co.edu.uniquindio.poo.notificacion.Notificador;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -20,19 +21,23 @@ import java.util.Objects;
 /**
  * Único lugar del sistema donde se crean alertas para los clientes.
  *
- * Los demás servicios no hacen "new Alerta(...)": le piden a este servicio que avise. Así, cuando
- * en la Fase 5A se agreguen los notificadores (correo, WhatsApp, SMS), basta con conectarlos aquí,
- * en el método crear(), y todas las alertas del sistema se enviarán sin tocar los otros servicios.
+ * Los demás servicios no hacen "new Alerta(...)": le piden a este servicio que avise. Cada alerta
+ * se guarda en el cliente y se envía por todos los Notificador recibidos en el constructor
+ * (por ahora, correo real con Gmail). Agregar otro canal (SMS, WhatsApp...) es pasar uno más en
+ * la lista donde se crean los objetos, sin tocar este servicio ni los demás.
  */
 public class AlertasServicio {
 
     private final ClienteRepositorio clienteRepositorio;
     private final Reloj reloj;
+    private final List<Notificador> notificadores;
 
-    public AlertasServicio(ClienteRepositorio clienteRepositorio, Reloj reloj) {
+    public AlertasServicio(ClienteRepositorio clienteRepositorio, Reloj reloj, List<Notificador> notificadores) {
         this.clienteRepositorio = Objects.requireNonNull(clienteRepositorio);
         this.reloj = Objects.requireNonNull(reloj);
+        this.notificadores = List.copyOf(notificadores);
     }
+    
 
     /**
      * Avisa solo cuando el saldo CRUZA el umbral (antes estaba por encima y ahora quedó en el umbral
@@ -75,8 +80,12 @@ public class AlertasServicio {
                 .toList();
     }
 
-    /** Punto único de creación (aquí se conectará el envío por los notificadores en la Fase 5A). */
+    /** Punto único de creación: guarda la alerta en el cliente y la envía por cada notificador (polimorfismo). */
     private void crear(Cliente cliente, TipoAlerta tipo, String mensaje) throws DatoInvalidoException {
-        cliente.agregarAlerta(new Alerta(tipo, mensaje, reloj.ahora()));
+        Alerta alerta = new Alerta(tipo, mensaje, reloj.ahora());
+        cliente.agregarAlerta(alerta);
+        for (Notificador notificador : notificadores) {
+            notificador.enviar(cliente, alerta);
+        }
     }
 }
