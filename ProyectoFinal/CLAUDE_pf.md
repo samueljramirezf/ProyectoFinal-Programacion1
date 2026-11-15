@@ -21,17 +21,22 @@ Entrega: **15 de noviembre, 11:59 p. m.** Equipo de 2 a 3 personas.
 
 ```
 co.edu.uniquindio.poo
-├── Main.java
+├── App.java            aplicación JavaFX (navegación, como en el tercer parcial)
+├── ContextoApp.java    crea servicios una sola vez + cliente con sesión iniciada
+├── Lanzador.java       para ejecutar desde el IDE (sin module-info)
+├── DemoConsola.java    demo por consola de las fases 4 y 5A
+├── viewController/     controladores de las vistas FXML (JavaFX)
+├── controller/         intermediarios sin JavaFX entre vista y servicios (estructura del tercer parcial)
 ├── modelo/        entidades y enums (casi solo datos y reglas propias de cada entidad)
 ├── servicio/      lógica de negocio
 ├── repositorio/   acceso a datos en memoria
-├── notificacion/  notificadores (simulados)
+├── notificacion/  notificadores (Gmail)
 ├── excepcion/     excepciones personalizadas
-├── util/          Config, validaciones, formato de dinero, Reloj
-└── ui/            controladores JavaFX
+└── util/          Config, validaciones, Reloj
+resources/co/edu/uniquindio/poo/   vistas .fxml + estilos.css
 ```
 
-**Regla de dependencias:** `ui → servicio → modelo`. El modelo no conoce a nadie. La interfaz gráfica nunca toca los datos directamente: solo llama a los servicios. Los cálculos (promedios, desviación, ordenamientos, reportes) van en `servicio`, no en `modelo`.
+**Regla de dependencias:** `viewController → controller → servicio → modelo`. El modelo no conoce a nadie. La interfaz gráfica nunca toca los datos directamente: solo llama a los servicios. Los cálculos (promedios, desviación, ordenamientos, reportes) van en `servicio`, no en `modelo`.
 
 ---
 
@@ -182,10 +187,33 @@ Los prompts vigentes de las fases 4 y 5 están en `PROMPTS_FASES_4_Y_5.md`. Obje
 
 - `modelo/Reversible` (`revertir()`, `puedeRevertirse()`): la implementa `Transaccion`. `puedeRevertirse()` vive en `Transaccion` (solo si está COMPLETADA) y cada hija implementa `revertir()`: `Deposito` debita el monto del monedero; `Retiro` acredita monto + comisión al origen; `Transferencia` primero debita el monto al destino (si ya no lo tiene, falla sin tocar el origen) y luego acredita monto + comisión al origen.
 - `MonederoServicio.revertir` ya no tiene switch: buscar → `puedeRevertirse()` → `validarReversionPuntos` → `transaccion.revertir()` → `revertirPuntos` → `marcarRevertida()`. El orden no cambió, así que los resultados son los mismos de la Fase 2.
-- `modelo/Puntuable` (`calcularPuntos()`): la implementa `Transaccion`. **Pendiente**: la está completando el compañero; por ahora la interfaz está vacía y `calcularPuntos()` sigue declarado como abstracto en `Transaccion`.
+- `modelo/Puntuable` (`calcularPuntos()`): la implementa `Transaccion` (lo declara abstracto con `@Override`) y cada hija tiene su cálculo. La hizo el compañero en la copia sin comentarios y se trajo al original.
 - `notificacion/Notificador` (`enviar(Cliente, Alerta)`) con una sola implementación: `NotificadorGmail` (correo real por SMTP de Gmail con contraseña de aplicación). No se hicieron los simulados que pedía el prompt (decisión del equipo).
 - `AlertasServicio` recibe una `List<Notificador>` por constructor; `crear()` guarda la alerta en el cliente y la envía por cada notificador.
 - Credenciales en variables de entorno `MONEDERO_CORREO` y `MONEDERO_CLAVE_CORREO` (configuradas en IntelliJ, nunca en el código ni en el repositorio). Sin ellas el `Main` usa una lista vacía: las alertas se guardan pero no se envían, para que el proyecto corra sin credenciales.
 - Si un envío falla (sin internet, clave incorrecta), `NotificadorGmail` lo atrapa y lo informa por consola; la operación del monedero no se cancela.
 - Dependencia nueva en el `pom.xml`: `org.eclipse.angus:angus-mail:2.0.3` (incluye la API `jakarta.mail`).
 - El `Main` agrega la sección 9 al final: revierte un retiro y una transferencia y muestra que un segundo intento se rechaza. Las secciones 1 a 8 dan la misma salida que en la Fase 4.
+
+## Decisiones confirmadas (Fase 5B-1)
+
+- Estructura del tercer parcial: `App extends Application` con un `openXxx()` por pantalla (`cargarVista` reúne lo repetido: FXML + CSS + escena) y `setApp(this)` en cada viewController. `App.contexto` (static) reemplaza a la `Panaderia` del parcial y se lee en `initialize()`.
+- Se conserva la capa `controller` del parcial (sin JavaFX, sin lógica, deja pasar las excepciones), aunque solo delega en los servicios: decisión del equipo para la presentación. Hay 4: `SesionController`, `MonederoController`, `OperacionController`, `HistorialController`.
+- Sin `module-info` (rutas con espacios/tildes). Se ejecuta con `mvn javafx:run` (`mainClass` = `App`) o desde el IDE con `Lanzador`.
+- Único cambio en la lógica: `MonederoServicio.iniciarSesion(id, contraseña)`; mismo mensaje para cliente inexistente y contraseña errada.
+- Pantallas: login, registro (entra directo al panel), panel (saldo total, puntos, rango, monederos, crear monedero, barra de navegación), operaciones (la comisión viene de `cotizarComision` y se confirma antes de ejecutar) e historial (filtros, sospechosas en rojo, revertidas en gris, revertir con confirmación).
+- Vista: valida campos vacíos y números mal escritos; el monto ≤ 0 lo rechaza el modelo (`MontoInvalidoException`). Todo error llega a un `Alert` (`Dialogos`) con `e.getMessage()`. `Formato` solo da formato a dinero y fechas.
+- Datos precargados en `ContextoApp.precargarDatos()`: 1001/clave1 (Ana, con la atípica de 300 y 2 programadas), 2002/clave2 (Luis), 3003/clave3 (María), 4004/clave4 (Carlos, 1600 puntos, rango ORO, para probar los canjes); el reloj termina en 2026-11-08.
+- El `Main` pasó a llamarse `DemoConsola`; su salida es la misma de antes.
+
+## Decisiones confirmadas (Fase 5B-2)
+
+- Sin panel de administrador (decisión del equipo).
+- Panel: la barra suma **Puntos** y **Avanzado**. Controllers nuevos, uno por servicio: `PuntosController`, `ProgramadasController`, `AnalisisController`, `AlertasController`. Sin cambios en la lógica de negocio.
+- Puntos y beneficios (`puntos.fxml`): disponibles, acumulados, rango; tres tarjetas de canje (costo y descripción salen de `TipoBeneficio`; el bono pide el monedero); tablas de beneficios vigentes e historial de puntos.
+- Avanzado (`avanzado.fxml`): un FXML con `TabPane` y un solo `AvanzadoViewController` separado por pestañas (sin `fx:include`, para que sea igual a las demás pantallas).
+  - Programadas: formulario (depósito o transferencia, destino propio u otro cliente), tabla ordenada por próxima fecha y "Avanzar fecha" (`Spinner` de 1 a 365 días). Los resultados fallidos salen en rojo.
+  - "Avanzar fecha" = `reloj.avanzarDias(n)` + `ejecutarPendientes()` desde `ProgramadasController`. El reloj es global (se ejecutan las de todos), pero el controller solo devuelve los resultados del cliente con sesión.
+  - Análisis: `PieChart` con `gastoPorCategoria` y etiquetas con `porcentajePorCategoria`, más el texto de `generarReporte`.
+  - Alertas: tabla (atípicas resaltadas) y una línea que dice si Gmail está activo (`ContextoApp.isCorreoActivo()`), porque no hay notificadores simulados.
+- `Formato` también tiene los `StringConverter` de monederos que usan los ComboBox de Operaciones, Puntos y Avanzado.

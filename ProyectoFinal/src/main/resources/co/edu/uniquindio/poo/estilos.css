@@ -1,0 +1,125 @@
+/* Hoja de estilos de toda la aplicación (App la agrega a cada escena). */
+
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f5f7fa;
+}
+
+.titulo {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f3b57;
+}
+
+.subtitulo {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3a4a5c;
+}
+
+.ayuda {
+    -fx-text-fill: #6b7785;
+    -fx-font-size: 12px;
+}
+
+/* Barra superior */
+.barra-navegacion {
+    -fx-background-color: #1f3b57;
+}
+
+.barra-navegacion .button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+}
+
+.barra-navegacion .button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+}
+
+.marca {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* Botón de la acción principal de cada pantalla */
+.boton-principal {
+    -fx-background-color: #2e7d5b;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.boton-principal:hover {
+    -fx-background-color: #25684b;
+}
+
+/* Tarjetas de resumen */
+.tarjeta {
+    -fx-background-color: white;
+    -fx-background-radius: 6;
+    -fx-border-color: #dde3ea;
+    -fx-border-radius: 6;
+    -fx-padding: 12;
+    -fx-spacing: 4;
+}
+
+.tarjeta-titulo {
+    -fx-text-fill: #6b7785;
+    -fx-font-size: 12px;
+}
+
+.tarjeta-valor {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f3b57;
+}
+
+.comision {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f3b57;
+}
+
+/* Historial: filas resaltadas */
+.fila-sospechosa {
+    -fx-background-color: #fbd5d5;
+}
+
+.fila-sospechosa:selected {
+    -fx-background-color: #e57373;
+}
+
+.fila-revertida .table-cell {
+    -fx-text-fill: #8a939c;
+    -fx-font-style: italic;
+}
+
+.leyenda-sospechosa {
+    -fx-background-color: #fbd5d5;
+    -fx-background-radius: 3;
+}
+
+.leyenda-revertida {
+    -fx-text-fill: #8a939c;
+    -fx-font-style: italic;
+    -fx-border-color: #c9d0d7;
+    -fx-border-radius: 3;
+}
+
+/* Avanzado: ejecuciones de programadas que fallaron y reporte de gastos */
+.resultado-fallo {
+    -fx-text-fill: #b3261e;
+}
+
+.resultado-fallo:selected {
+    -fx-text-fill: white;
+}
+
+.reporte {
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 12px;
+}

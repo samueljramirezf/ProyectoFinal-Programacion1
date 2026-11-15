@@ -25,9 +25,9 @@ import java.util.List;
 /**
  * Demo de consola de las Fases 4 y 5A: programadas, atípicas, análisis de gasto, alertas
  * (enviadas por Gmail si hay credenciales) y reversión polimórfica con Reversible.
- * Es solo para verificar los servicios; en la Fase 5B se reemplaza por la aplicación JavaFX.
+ * Es solo para verificar los servicios por consola; la aplicación real es la JavaFX (App).
  */
-public class Main {
+public class DemoConsola {
 
     public static void main(String[] args) throws MonederoException {
         // ---- Creación de objetos: cada servicio recibe sus dependencias por constructor ----

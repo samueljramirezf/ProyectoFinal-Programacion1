@@ -63,7 +63,8 @@ public abstract class Transaccion implements Puntuable, Reversible {
 
     public abstract TipoTransaccion getTipo();
 
-    /** Puntos que genera esta transacción para el emisor. Cada tipo usa su propio factor. */
+    /** Puntos que genera esta transacción para el emisor (interfaz Puntuable). Cada tipo usa su propio factor. */
+    @Override
     public abstract int calcularPuntos();
 
     /** Porcentaje de comisión antes de descuentos (por rango o beneficios). */
@@ -134,8 +135,8 @@ public abstract class Transaccion implements Puntuable, Reversible {
         estado = EstadoTransaccion.COMPLETADA;
         id = "T-" + String.format("%05d", contadorIds++);
     }
+     /** Solo se puede revertir una transacción completada (y una sola vez). */
     @Override 
-    /** Solo se puede revertir una transacción completada (y una sola vez). */
     public boolean puedeRevertirse(){
         return estado == EstadoTransaccion.COMPLETADA;
     }

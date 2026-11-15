@@ -89,6 +89,17 @@ public class MonederoServicio {
                 .orElseThrow(() -> new ClienteNoEncontradoException(identificacion));
     }
 
+    /**
+     * Inicio de sesión (Fase 5B). El mismo mensaje sirve para "no existe" y "contraseña errada"
+     * a propósito: así nadie puede averiguar qué identificaciones están registradas.
+     */
+    public Cliente iniciarSesion(String identificacion, String contrasena) throws DatoInvalidoException {
+        return clienteRepositorio.buscarPorId(identificacion)
+                .filter(cliente -> cliente.verificarContrasena(contrasena))
+                .orElseThrow(() -> new DatoInvalidoException("inicio de sesión",
+                        "identificación o contraseña incorrecta"));
+    }
+
     /** Multimonedero: un cliente puede tener varios monederos, cada uno con su saldo. */
     public Monedero crearMonedero(String idCliente, String nombre, TipoMonedero tipo)
             throws ClienteNoEncontradoException, DatoInvalidoException {

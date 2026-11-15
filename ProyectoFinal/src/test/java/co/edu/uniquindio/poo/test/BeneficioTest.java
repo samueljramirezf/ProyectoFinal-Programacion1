@@ -1,13 +1,14 @@
 package co.edu.uniquindio.poo.test;
+import co.edu.uniquindio.poo.excepcion.DatoInvalidoException;
 import co.edu.uniquindio.poo.modelo.Beneficio;
 import co.edu.uniquindio.poo.modelo.TipoBeneficio;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BeneficioTest {
-
     @Test
     void testToStringSinFechaYNoUsado() throws Exception {
         Beneficio beneficio = new Beneficio(
@@ -52,19 +53,20 @@ class BeneficioTest {
     }
 
     @Test
-    void testToStringConFechaYUsado() throws Exception {
-        Beneficio beneficio = new Beneficio(
-                TipoBeneficio.RETIROS_SIN_COMISION,
-                LocalDate.of(2026, 11, 12)
-        );
+    void testMarcarUsadoBeneficioPorTiempoLanzaExcepcion() {
 
-        beneficio.marcarUsado();
+        Beneficio beneficio = null;
+        try {
+            beneficio = new Beneficio(
+                    TipoBeneficio.RETIROS_SIN_COMISION,
+                    LocalDate.of(2026, 11, 12)
+            );
+        } catch (DatoInvalidoException e) {
+            throw new RuntimeException(e);
+        }
 
-        String esperado = beneficio.getId()
-                + " Un mes sin cargos por retiros"
-                + " (vence " + beneficio.getFechaVencimiento() + ")"
-                + " [USADO]";
-
-        assertEquals(esperado, beneficio.toString());
+        Beneficio finalBeneficio = beneficio;
+        assertThrows(IllegalStateException.class,
+                () -> finalBeneficio.marcarUsado());
     }
 }
